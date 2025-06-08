@@ -1,6 +1,5 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Heading from './components/Heading';
 import Login from './components/Login';
 import Search from './components/Search';
 
@@ -10,7 +9,7 @@ const App = () => {
       <div className="container">
         {/* Show heading ONLY on login page */}
         <Routes>
-          <Route path="/" element={<><Heading /><Login /></>} />
+          <Route path="/" element={<><Login /></>} />
           <Route path="/search" element={<Search />} />
         </Routes>
       </div>

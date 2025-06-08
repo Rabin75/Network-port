@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import 'bootstrap/dist/css/bootstrap.min.css';
+import { FaUserCircle } from 'react-icons/fa';
+import FallingCodeBackground from './FallingCodeBackground'; // <-- make sure this path is correct
+import './Login.css';
 
 const Login = () => {
+  const [showLoginBox, setShowLoginBox] = useState(false);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -13,11 +16,9 @@ const Login = () => {
       setError('All fields are required!');
       return;
     }
-
-    setError('');
-
-    if (username === 'adminEUS' && password === 'Helpdesk@45') {
-      navigate('/search'); 
+    if (username === 'admin' && password === 'admin') {
+      setError('');
+      navigate('/search');
     } else {
       setError('Invalid credentials!');
     }
@@ -25,39 +26,51 @@ const Login = () => {
 
   const handleKeyPress = (event) => {
     if (event.key === 'Enter') {
-      handleLogin(); 
+      handleLogin();
     }
   };
 
   return (
-    <div className="container mt-5">
-      <h2>Login</h2>
+    <div className="login-wrapper">
+      {/* Background falling code */}
+      <FallingCodeBackground />
 
-      {error && <div className="alert alert-danger">{error}</div>}
-
-      <div className="mb-3">
-        <label className="form-label">Username</label>
-        <input 
-          type="text" 
-          className="form-control" 
-          value={username} 
-          onChange={(e) => setUsername(e.target.value)}
-          onKeyDown={handleKeyPress} 
-        />
+      {/* Heading */}
+      <h1 className="left-centered-heading">
+        Susquehanna EUS Network Voice Configuration
+      </h1>
+      {/* Top-right user icon */}
+      <div
+        className="top-right-avatar"
+        onClick={() => setShowLoginBox(!showLoginBox)}
+        aria-label="Toggle login form"
+      >
+        <FaUserCircle size={40} color="#fff" />
       </div>
 
-      <div className="mb-3">
-        <label className="form-label">Password</label>
-        <input 
-          type="password" 
-          className="form-control" 
-          value={password} 
-          onChange={(e) => setPassword(e.target.value)}
-          onKeyDown={handleKeyPress} 
-        />
-      </div>
-
-      <button className="btn btn-primary" onClick={handleLogin}>Login</button>
+      {/* Login dialog */}
+      {showLoginBox && (
+        <div className="login-box">
+          <h5 className="mb-3 text-center">Login</h5>
+          {error && <div className="error-message">{error}</div>}
+          <input
+            type="text"
+            placeholder="Username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            onKeyDown={handleKeyPress}
+            autoFocus
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            onKeyDown={handleKeyPress}
+          />
+          <button onClick={handleLogin}>Login</button>
+        </div>
+      )}
     </div>
   );
 };

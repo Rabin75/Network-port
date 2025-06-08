@@ -1,167 +1,257 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import confetti from 'canvas-confetti'; // 🎉 Import confetti effect
+import confetti from 'canvas-confetti';
+import humanAvatar from './human.webp';
+import { FaSearch } from 'react-icons/fa';
 
 const Search = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedLevel, setSelectedLevel] = useState(null);
-  const [error, setError] = useState('');
-  const [tableData, setTableData] = useState(null);
-  const [showChangeVlanButton, setShowChangeVlanButton] = useState(false);
-  const [showVlanOptions, setShowVlanOptions] = useState(false);
+  const [portData, setPortData] = useState([]);
+  const [editIndex, setEditIndex] = useState(null);
   const [vlanMessage, setVlanMessage] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [showTable, setShowTable] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [changingText, setChangingText] = useState('');
+  const [showSignOut, setShowSignOut] = useState(false);
 
   const navigate = useNavigate();
 
-  const handleSignOut = () => {
-    navigate('/');
+  const toggleSignOut = () => setShowSignOut(prev => !prev);
+  const handleSignOut = () => navigate('/');
+
+  const handleLevelClick = (level) => {
+    const isSame = selectedLevel === level;
+    setSelectedLevel(isSame ? null : level);
+    setSearchTerm('');
+    setPortData([]);
+    setShowTable(false);
+    setEditIndex(null);
+    setVlanMessage('');
+    setShowSignOut(false);
   };
 
-  const handleSearch = (e) => {
+  const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
-    setError('');
-  };
-
-  const handleSubmit = () => {
-    setVlanMessage('');
-    setShowVlanOptions(false);
-    setShowChangeVlanButton(false);
-
-    if (!selectedLevel && searchTerm) {
-      alert('Please select a level first!');
-      return;
-    }
-
-    if (selectedLevel && !searchTerm) {
-      alert('Please enter a desk number!');
-      return;
-    }
-
-    let tableConfig = {
-      deskNo: searchTerm,
-      dataPort: ['N/A'],
-      voicePort: 'N/A',
-      status: { A: 'N/A', B: 'N/A' },
-      vlan: 'N/A',
-      switch: 'N/A',
-    };
-
-    if (selectedLevel === 44 && searchTerm === '001') {
-      tableConfig = {
-        deskNo: '001',
-        dataPort: ['001A', '001B'],
-        voicePort: '001D',
-        status: { A: 'Connected', B: 'Disconnected' },
-        vlan: 'Trade',
-        switch: 'brn47-oo1-et1',
-      };
-      setShowChangeVlanButton(true);
-    } else if (selectedLevel === 47 && searchTerm === '002') {
-      tableConfig = {
-        deskNo: '002',
-        dataPort: ['002A', '002B'],
-        voicePort: '002D',
-        status: { A: 'Connected', B: 'Disconnected' },
-        vlan: 'Corp',
-        switch: 'brn47-oo2-et1',
-      };
-      setShowChangeVlanButton(true);
-    } else if (selectedLevel === 48 && searchTerm === '003') {
-      tableConfig = {
-        deskNo: '003',
-        dataPort: ['003A', '003B'],
-        voicePort: '003D',
-        status: { A: 'Connected', B: 'Disconnected' },
-        vlan: 'Dev',
-        switch: 'brn47-oo3-et1',
-      };
-      setShowChangeVlanButton(true);
-    }
-
-    setTableData(tableConfig);
-  };
-
-  const handleVlanChange = () => {
-    setShowVlanOptions(true);
     setVlanMessage('');
   };
 
-  const applyVlanChange = (newVlan) => {
-    if (tableData) {
-      setTableData((prev) => ({ ...prev, vlan: newVlan }));
-      setShowVlanOptions(false);
-      setVlanMessage(`VLAN changed to ${newVlan} successfully! 🎉`);
-      confetti({ particleCount: 100, spread: 160, origin: { y: 0.6 } });
+  const handleSearchSubmit = () => {
+    if (!selectedLevel || !searchTerm) {
+      alert('Please select a level and enter a desk number.');
+      return;
     }
+
+    setLoading(true);
+    setShowTable(false);
+    setEditIndex(null);
+    setVlanMessage('');
+
+    setTimeout(() => {
+      setLoading(false);
+      let results = [];
+      if (selectedLevel === 44 && searchTerm === '002') {
+        results = [
+          { deskNo: '44-0A-I1', portNo: '002A', vlan: 700, status: 'Connected', description: 'Trade', switch: 'leaf44-et1' },
+          { deskNo: '44-0A-I1', portNo: '002B', vlan: 701, status: 'Notconnected', description: 'Startarb', switch: 'leaf44-et2' },
+          { deskNo: '44-0A-I1', portNo: '002C', vlan: 706, status: 'Connected', description: 'Cisco', switch: 'leaf44-et3' },
+          { deskNo: '44-0A-I1', portNo: '002D', vlan: 707, status: 'Notconnected', description: 'IPC', switch: 'leaf44-et4' },
+        ];
+      } else if (selectedLevel === 47 && searchTerm === '001') {
+        results = [
+          { deskNo: '47-0A-I1', portNo: '001A', vlan: 702, status: 'Connected', description: 'Dev', switch: 'leaf04-et13' },
+          { deskNo: '47-0A-I1', portNo: '001B', vlan: 703, status: 'Notconnected', description: 'Corp', switch: 'leaf04-et14' },
+          { deskNo: '47-0A-I1', portNo: '001C', vlan: 706, status: 'Connected', description: 'Cisco', switch: 'leaf09-et9' },
+          { deskNo: '47-0A-I1', portNo: '001D', vlan: 707, status: 'Notconnected', description: 'IPC', switch: 'leaf09-et11' },
+        ];
+      } else if (selectedLevel === 48 && searchTerm === '003') {
+        results = [
+          { deskNo: '48-0B-X1', portNo: '003A', vlan: 702, status: 'Connected', description: 'Dev', switch: 'leaf48-et10' },
+          { deskNo: '48-0B-X1', portNo: '003B', vlan: 703, status: 'Notconnected', description: 'Corp', switch: 'leaf48-et11' },
+          { deskNo: '48-0B-X1', portNo: '003C', vlan: 706, status: 'Connected', description: 'Cisco', switch: 'leaf48-et12' },
+          { deskNo: '48-0B-X1', portNo: '003D', vlan: 707, status: 'Notconnected', description: 'IPC', switch: 'leaf48-et13' },
+        ];
+      }
+
+      if (results.length) {
+        setPortData(results);
+        setShowTable(true);
+      } else {
+        alert('No data found for that desk/level.');
+      }
+    }, 3000);
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') handleSearchSubmit();
+  };
+
+  const handleChangeClick = (index) => {
+    setEditIndex(index);
+    setVlanMessage('');
+    setProgress(0);
+  };
+
+  const applyVlanChange = (index, newVlan) => {
+    setChangingText(`Changing port ${portData[index].portNo} to ${vlanLabelMap[newVlan]}(${newVlan}) VLAN`);
+    setEditIndex(null);
+    setProgress(1);
+
+    const interval = setInterval(() => {
+      setProgress((prev) => {
+        if (prev >= 100) {
+          clearInterval(interval);
+          const updated = [...portData];
+          updated[index].vlan = newVlan;
+          updated[index].description = vlanLabelMap[newVlan] || 'Unknown';
+          setPortData(updated);
+          setChangingText(`Finalizing configuration for port ${updated[index].portNo}...`);
+          setTimeout(() => {
+            setChangingText('');
+            setProgress(0); // Hide progress bar after success
+            setVlanMessage(`VLAN for ${updated[index].portNo} changed to ${newVlan} successfully! 🎉`);
+            confetti({ particleCount: 100, spread: 160, origin: { y: 0.6 }, startVelocity: 30 });
+          }, 2500);
+          return 100;
+        }
+        return prev + 5;
+      });
+    }, 100);
+  };
+
+  const getVlanOptions = (portNo) => {
+    const suffix = portNo.slice(-1);
+    return suffix === 'A' || suffix === 'B' ? [700, 701, 702, 703, 704] : [706, 707];
+  };
+
+  const vlanLabelMap = {
+    700: 'Trade', 701: 'Startarb', 702: 'Dev', 703: 'Corp',
+    704: 'TradeSupport', 706: 'Cisco', 707: 'IPC'
   };
 
   return (
     <>
-      {/* Fixed Top Bar */}
-      <div className="fixed-top bg-white py-3 d-flex flex-column align-items-start ps-3">
+      <div className="fixed-top bg-white py-3 d-flex justify-content-between align-items-center px-3">
         <div className="d-flex gap-3">
-          <button className={`btn ${selectedLevel === 44 ? 'btn-success' : 'btn-primary'} px-5 py-3 fs-5`} onClick={() => setSelectedLevel(44)}>Level 44</button>
-          <button className={`btn ${selectedLevel === 47 ? 'btn-success' : 'btn-primary'} px-5 py-3 fs-5`} onClick={() => setSelectedLevel(47)}>Level 47</button>
-          <button className={`btn ${selectedLevel === 48 ? 'btn-success' : 'btn-primary'} px-5 py-3 fs-5`} onClick={() => setSelectedLevel(48)}>Level 48</button>
+          {[44, 47, 48].map((level) => (
+            <button
+              key={level}
+              className={`btn ${selectedLevel === level ? 'btn-success' : 'btn-primary'} px-4 py-2 fs-5`}
+              onClick={() => handleLevelClick(level)}
+            >
+              Level {level}
+            </button>
+          ))}
         </div>
-
-        {/* Search + Enter + Sign Out */}
-        <div className="d-flex gap-3 w-100 mt-3 align-items-center justify-content-between">
-          <input
-            type="text"
-            className="form-control w-50 py-3 fs-5"
-            placeholder="Enter desk number or port number"
-            value={searchTerm}
-            onChange={handleSearch}
-          />
-          <button className="btn btn-success px-5 py-3 fs-5" onClick={handleSubmit}> Enter </button>
-          <button className="btn btn-danger px-5 py-3 fs-5" onClick={handleSignOut}> Sign Out </button>
+        <div style={{ cursor: 'pointer', position: 'relative' }} onClick={toggleSignOut}>
+          <img src={humanAvatar} alt="User Avatar" style={{ width: '40px', height: '40px', borderRadius: '50%' }} />
+          {showSignOut && (
+            <button
+              className="btn btn-danger btn-sm"
+              style={{ position: 'absolute', right: 0, top: '45px', whiteSpace: 'nowrap', fontSize: '10px', padding: '2px 6px' }}
+              onClick={handleSignOut}
+            >
+              Sign Out
+            </button>
+          )}
         </div>
       </div>
 
-      {/* Desk Information Table */}
-      {tableData && (
-        <div className="container mt-5 d-flex gap-4 align-items-start pt-5">
-          <div>
-            <h4>Desk Information</h4>
-            <table className="table table-bordered">
-              <tbody>
-                <tr><th>Desk No</th><td>{tableData.deskNo}</td></tr>
-                <tr><th>Data Port</th><td>{tableData.dataPort.join(', ')}</td></tr>
-                <tr><th>Voice Port</th><td>{tableData.voicePort}</td></tr>
-                <tr><th>Status</th><td>A: {tableData.status.A}, B: {tableData.status.B}</td></tr>
-                <tr><th>VLAN</th><td>{tableData.vlan}</td></tr>
-                <tr><th>Switch</th><td>{tableData.switch}</td></tr>
-              </tbody>
-            </table>
+      <div className="container" style={{ paddingTop: '140px' }}>
+        {selectedLevel && (
+          <div className="d-flex gap-3 justify-content-center px-3 mb-2 fixed-top" style={{ top: '100px' }}>
+            <input
+              type="text"
+              className="form-control w-50 py-3 fs-5"
+              placeholder="Enter desk number"
+              value={searchTerm}
+              onChange={handleSearchChange}
+              onKeyDown={handleKeyDown}
+            />
+            <button className="btn btn-success px-4 py-3 fs-5" onClick={handleSearchSubmit}>
+              <FaSearch />
+            </button>
           </div>
+        )}
 
-          {/* VLAN Actions */}
-          {showChangeVlanButton && (
-            <div>
-              {!showVlanOptions && (
-                <button className="btn btn-warning px-4 py-2 fs-5" onClick={handleVlanChange}>Change VLAN</button>
-              )}
+        <div style={{ paddingTop: selectedLevel ? '120px' : '160px' }}>
+          {loading && (
+            <div className="text-center my-5">
+              <div className="spinner-border text-primary" role="status" />
+              <p className="mt-3 fs-5">Loading desk info...</p>
+            </div>
+          )}
 
-              {showVlanOptions && (
-                <div className="mt-3">
-                  <h5>Select VLAN:</h5>
-                  <div className="d-flex flex-column gap-2">
-                    {['Trade', 'Corp', 'Dev', 'Trade Support', 'Startarb'].map((vlan) => (
-                      <button key={vlan} className="btn btn-info px-4 py-2 fs-5" onClick={() => applyVlanChange(vlan)}>{vlan}</button>
-                    ))}
+          {showTable && (
+            <>
+              <h4 className="mb-3 text-primary">Desk Information</h4>
+              {changingText && <div className="alert alert-info fs-6 py-2 px-3">{changingText}</div>}
+              {progress > 0 && (
+                <div className="progress mb-3" style={{ height: '20px' }}>
+                  <div
+                    className="progress-bar progress-bar-striped progress-bar-animated"
+                    role="progressbar"
+                    style={{ width: `${progress}%`, fontSize: '14px' }}
+                  >
+                    {progress}%
                   </div>
                 </div>
               )}
 
-              {vlanMessage && <div className="alert alert-success mt-3 fs-5">{vlanMessage} 🎉✨</div>}
-            </div>
+              <table className="table table-bordered">
+                <thead className="table-light">
+                  <tr>
+                    <th>Desk no:</th>
+                    <th>Port no:</th>
+                    <th>VLAN</th>
+                    <th>Status</th>
+                    <th>Description</th>
+                    <th>Switch</th>
+                    <th>Edit</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {portData.map((row, index) => (
+                    <tr key={index}>
+                      <td>{row.deskNo}</td>
+                      <td>{row.portNo}</td>
+                      <td>{row.vlan}</td>
+                      <td>{row.status}</td>
+                      <td>{row.description}</td>
+                      <td>{row.switch}</td>
+                      <td>
+                        {editIndex === index ? (
+                          <div className="d-flex flex-column gap-1">
+                            {getVlanOptions(row.portNo).map((vlanOption) => (
+                              <button
+                                key={vlanOption}
+                                className="btn btn-sm btn-info"
+                                onClick={() => applyVlanChange(index, vlanOption)}
+                              >
+                                {vlanLabelMap[vlanOption]} ({vlanOption})
+                              </button>
+                            ))}
+                          </div>
+                        ) : (
+                          <button className="btn btn-sm btn-warning" onClick={() => handleChangeClick(index)}>
+                            Change
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {vlanMessage && <div className="alert alert-success fs-5">{vlanMessage}</div>}
+            </>
           )}
         </div>
-      )}
+      </div>
     </>
   );
 };
 
 export default Search;
+

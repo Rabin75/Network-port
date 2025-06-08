@@ -1,0 +1,88 @@
+/* Reset and base styles */
+body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #1c2331 0%, #0f111a 100%);
+    color: white;
+  }
+  
+  /* Wrapper fills viewport and centers content */
+  .login-wrapper {
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;  /* center horizontally */
+    padding-left: 190px;   /* center vertically */
+    position: relative;
+    z-index: 1;
+  }
+  
+  /* Centered heading style */
+  .left-centered-heading {
+    font-weight: bold;
+    font-size: 2.5rem;
+    color: white;
+    text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.7);
+    user-select: none;
+  }
+  
+  /* Fixed top-right user icon */
+  .top-right-avatar {
+    position: fixed !important;
+    top: 15px !important;
+    right: 15px !important;
+    cursor: pointer;
+    z-index: 1000;
+    transition: transform 0.2s ease-in-out;
+    color: white;
+  }
+  
+  /* Icon hover effect */
+  .top-right-avatar:hover {
+    transform: scale(1.1);
+  }
+  
+  /* Login dialog box fixed under icon */
+  .login-box {
+    position: fixed;
+    top: 60px;
+    right: 15px;
+    width: 300px;
+    background-color: rgba(255, 255, 255, 0.95);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.3);
+    z-index: 1100;
+    color: black;
+  }
+  
+  /* Error alert inside login box */
+  .login-box .alert {
+    padding: 4px 8px;
+    font-size: 0.85rem;
+  }
+  .avatar-face {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 10px;
+  }
+  
+  .avatar-img {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    border: 2px solid #ccc;
+  }
+  
+  /* Input fields styling */
+  .login-box input.form-control {
+    margin-bottom: 12px;
+  }
+  
+  /* Button full width */
+  .login-box button.btn-primary {
+    width: 100%;
+  }
+  
